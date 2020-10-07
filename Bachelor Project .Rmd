@@ -1,0 +1,82 @@
+---
+title: "Bachelor Project"
+author: "Sofie Ditmer"
+date: "9/22/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load packages
+```{r}
+library(pacman)
+pacman::p_load(readtext,tidyverse, pastecs, WRS2, tidyselect, brms, rethinking, bayesplot, udpipe)
+devtools::install_github("quanteda/stopwords")
+```
+
+# Load data
+```{r}
+data_subset <- read.delim("DataSubset/sentences_subset.txt", header = FALSE)
+
+```
+
+# Load model
+```{r}
+# Get danish model
+danish <- udpipe_download_model(language = "danish")
+str(danish)
+
+# Load danish model
+udmodel_danish  <- udpipe_load_model(file = "danish-ddt-ud-2.4-190531.udpipe")
+
+```
+
+Make text into lowercase, remove punctuation, and remove numbers
+```{r}
+data_subset[,1] <- tolower(data_subset[,1]) # make it lower case
+data_subset[,1] <-  gsub("[[:punct:]]", "", data_subset[,1]) # remove punctuation
+data_subset[,1] <- gsub("[[:digit:]]", "", data_subset[,1]) # remove numbers
+```
+
+Removing stopwords
+```{r}
+# Using the stopwords package
+list_of_stopwords <- stopwords::stopwords("da", source = "snowball")
+
+# Remove stopwords from subset data
+stopwords_regex = paste(stopwords('da'), collapse = '\\b|\\b')
+stopwords_regex = paste0('\\b', stopwords_regex, '\\b')
+data_subset[,1] <- stringr::str_replace_all(data_subset[,1], stopwords_regex, '')
+
+```
+
+NLP: tokenization, tagging, lemmatization, dependency parsing
+```{r}
+x <- udpipe_annotate(udmodel_danish, x = data_subset[,1])
+x <- as.data.frame(x)
+str(x)
+table(x$upos)
+```
+
+Making a csv-file
+```{r}
+write.csv(data_subset, file = "preprocessed_data_subset.csv")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
