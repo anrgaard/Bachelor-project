@@ -12,17 +12,78 @@ knitr::opts_chunk$set(echo = TRUE)
 Load packages
 ```{r}
 library(pacman)
-pacman::p_load(readtext,tidyverse, pastecs, WRS2, tidyselect, brms, rethinking, bayesplot, udpipe)
-devtools::install_github("quanteda/stopwords")
+pacman::p_load(readtext,tidyverse, pastecs, WRS2, tidyselect, brms, rethinking, bayesplot, udpipe, stopwords, textclean)
+#devtools::install_github("quanteda/stopwords")
 ```
 
 # Load data
+First we load one subset to test the operations on to make sure that everything works adequately
 ```{r}
-data_subset <- read.delim("DataSubset/sentences_subset.txt", header = FALSE)
-
+subset1 <- read.delim("Formatted_Data/subset1.txt", header = FALSE, quote="", fill=FALSE)
 ```
 
-# Load model
+Now we load the rest of the subsets. Since the datafile is too large (6 GB), we had to split it into multiple files to it all into R.
+```{r}
+subset1 <- read.delim("Formatted_Data/subset1.txt", header = FALSE, quote="", fill=FALSE)
+subset2 <- read.delim("Formatted_Data/subset2.txt", header = FALSE, quote="", fill=FALSE)
+subset3 <- read.delim("Formatted_Data/subset3.txt", header = FALSE, quote="", fill=FALSE)
+subset4 <- read.delim("Formatted_Data/subset4.txt", header = FALSE, quote="", fill=FALSE)
+subset5 <- read.delim("Formatted_Data/subset5.txt", header = FALSE, quote="", fill=FALSE)
+subset6 <- read.delim("Formatted_Data/subset6.txt", header = FALSE, quote="", fill=FALSE)
+subset7 <- read.delim("Formatted_Data/subset7.txt", header = FALSE, quote="", fill=FALSE)
+subset8 <- read.delim("Formatted_Data/subset8.txt", header = FALSE, quote="", fill=FALSE)
+subset9 <- read.delim("Formatted_Data/subset9.txt", header = FALSE, quote="", fill=FALSE)
+subset10 <- read.delim("Formatted_Data/subset10.txt", header = FALSE, quote="", fill=FALSE)
+subset11 <- read.delim("Formatted_Data/subset11.txt", header = FALSE, quote="", fill=FALSE)
+subset12 <- read.delim("Formatted_Data/subset12.txt", header = FALSE, quote="", fill=FALSE)
+subset13 <- read.delim("Formatted_Data/subset13.txt", header = FALSE, quote="", fill=FALSE)
+subset14 <- read.delim("Formatted_Data/subset14.txt", header = FALSE, quote="", fill=FALSE)
+subset15 <- read.delim("Formatted_Data/subset15.txt", header = FALSE, quote="", fill=FALSE)
+subset16 <- read.delim("Formatted_Data/subset16.txt", header = FALSE, quote="", fill=FALSE)
+subset17 <- read.delim("Formatted_Data/subset17.txt", header = FALSE, quote="", fill=FALSE)
+subset18 <- read.delim("Formatted_Data/subset18.txt", header = FALSE, quote="", fill=FALSE)
+subset19 <- read.delim("Formatted_Data/subset19.txt", header = FALSE, quote="", fill=FALSE)
+subset20 <- read.delim("Formatted_Data/subset20.txt", header = FALSE, quote="", fill=FALSE)
+subset21 <- read.delim("Formatted_Data/subset21.txt", header = FALSE, quote="", fill=FALSE)
+subset22 <- read.delim("Formatted_Data/subset22.txt", header = FALSE, quote="", fill=FALSE)
+subset23 <- read.delim("Formatted_Data/subset23.txt", header = FALSE, quote="", fill=FALSE)
+subset24 <- read.delim("Formatted_Data/subset24.txt", header = FALSE, quote="", fill=FALSE)
+subset25 <- read.delim("Formatted_Data/subset25.txt", header = FALSE, quote="", fill=FALSE)
+subset26 <- read.delim("Formatted_Data/subset26.txt", header = FALSE, quote="", fill=FALSE)
+subset27 <- read.delim("Formatted_Data/subset27.txt", header = FALSE, quote="", fill=FALSE)
+subset28 <- read.delim("Formatted_Data/subset28.txt", header = FALSE, quote="", fill=FALSE)
+subset29 <- read.delim("Formatted_Data/subset29.txt", header = FALSE, quote="", fill=FALSE)
+subset30 <- read.delim("Formatted_Data/subset30.txt", header = FALSE, quote="", fill=FALSE)
+subset31 <- read.delim("Formatted_Data/subset31.txt", header = FALSE, quote="", fill=FALSE)
+subset32 <- read.delim("Formatted_Data/subset32.txt", header = FALSE, quote="", fill=FALSE)
+subset33 <- read.delim("Formatted_Data/subset33.txt", header = FALSE, quote="", fill=FALSE)
+subset34 <- read.delim("Formatted_Data/subset34.txt", header = FALSE, quote="", fill=FALSE)
+subset35 <- read.delim("Formatted_Data/subset35.txt", header = FALSE, quote="", fill=FALSE)
+subset36 <- read.delim("Formatted_Data/subset36.txt", header = FALSE, quote="", fill=FALSE)
+subset37 <- read.delim("Formatted_Data/subset37.txt", header = FALSE, quote="", fill=FALSE)
+subset38 <- read.delim("Formatted_Data/subset38.txt", header = FALSE, quote="", fill=FALSE)
+subset39 <- read.delim("Formatted_Data/subset39.txt", header = FALSE, quote="", fill=FALSE)
+subset40 <- read.delim("Formatted_Data/subset40.txt", header = FALSE, quote="", fill=FALSE)
+subset41 <- read.delim("Formatted_Data/subset41.txt", header = FALSE, quote="", fill=FALSE)
+subset42 <- read.delim("Formatted_Data/subset42.txt", header = FALSE, quote="", fill=FALSE)
+subset43 <- read.delim("Formatted_Data/subset43.txt", header = FALSE, quote="", fill=FALSE)
+subset44 <- read.delim("Formatted_Data/subset44.txt", header = FALSE, quote="", fill=FALSE)
+subset45 <- read.delim("Formatted_Data/subset45.txt", header = FALSE, quote="", fill=FALSE)
+subset46 <- read.delim("Formatted_Data/subset46.txt", header = FALSE, quote="", fill=FALSE)
+subset47 <- read.delim("Formatted_Data/subset47.txt", header = FALSE, quote="", fill=FALSE)
+subset48 <- read.delim("Formatted_Data/subset48.txt", header = FALSE, quote="", fill=FALSE)
+subset49 <- read.delim("Formatted_Data/subset49.txt", header = FALSE, quote="", fill=FALSE)
+subset50 <- read.delim("Formatted_Data/subset50.txt", header = FALSE, quote="", fill=FALSE)
+subset51 <- read.delim("Formatted_Data/subset51.txt", header = FALSE, quote="", fill=FALSE)
+subset52 <- read.delim("Formatted_Data/subset52.txt", header = FALSE, quote="", fill=FALSE)
+subset53 <- read.delim("Formatted_Data/subset53.txt", header = FALSE, quote="", fill=FALSE)
+subset54 <- read.delim("Formatted_Data/subset54.txt", header = FALSE, quote="", fill=FALSE)
+subset55 <- read.delim("Formatted_Data/subset55.txt", header = FALSE, quote="", fill=FALSE)
+subset56 <- read.delim("Formatted_Data/subset56.txt", header = FALSE, quote="", fill=FALSE)
+```
+
+# TESTING OPERATIONS ON SUBSET1 #
+# Load UDpipemodel
 ```{r}
 # Get danish model
 danish <- udpipe_download_model(language = "danish")
@@ -35,9 +96,9 @@ udmodel_danish  <- udpipe_load_model(file = "danish-ddt-ud-2.4-190531.udpipe")
 
 Make text into lowercase, remove punctuation, and remove numbers
 ```{r}
-data_subset[,1] <- tolower(data_subset[,1]) # make it lower case
-data_subset[,1] <-  gsub("[[:punct:]]", "", data_subset[,1]) # remove punctuation
-data_subset[,1] <- gsub("[[:digit:]]", "", data_subset[,1]) # remove numbers
+subset1[,1] <- tolower(subset1[,1]) # make it lower case
+subset1[,1] <-  gsub("[[:punct:]]", "", subset1[,1]) # remove punctuation
+subset1[,1] <- gsub("[[:digit:]]", "", subset1[,1]) # remove numbers
 ```
 
 Removing stopwords
@@ -48,22 +109,63 @@ list_of_stopwords <- stopwords::stopwords("da", source = "snowball")
 # Remove stopwords from subset data
 stopwords_regex = paste(stopwords('da'), collapse = '\\b|\\b')
 stopwords_regex = paste0('\\b', stopwords_regex, '\\b')
-data_subset[,1] <- stringr::str_replace_all(data_subset[,1], stopwords_regex, '')
+subset1[,1] <- stringr::str_replace_all(subset1[,1], stopwords_regex, '')
 
 ```
 
 NLP: tokenization, tagging, lemmatization, dependency parsing
 ```{r}
-x <- udpipe_annotate(udmodel_danish, x = data_subset[,1])
+x <- udpipe_annotate(udmodel_danish, x = subset1[,1])
 x <- as.data.frame(x)
 str(x)
 table(x$upos)
 ```
 
+Creating the right format that can be used in Python
+```{r}
+x2 <- x
+
+# Remove "doc" so we only have numbers
+x2$doc_id <- stringr::str_replace_all(x2$doc_id, "doc", "")
+x2$doc_id <- as.numeric(x2$doc_id)
+
+# Collapse
+x2 <- x2 %>%
+  select(doc_id, lemma) %>% 
+  group_by(doc_id) %>% 
+  summarize(sentence = str_c(lemma, collapse = ", ")) %>% 
+  arrange()
+
+# Remove doc_id column
+x2$doc_id <- NULL
+
+# Remove commas
+x2$sentence <- gsub("[[:punct:]]", "", x2$sentence)
+
+# Quotations around words
+#x2$sentence <- sapply(strsplit(x2$sentence, '[,]'), function(x) toString(sQuote(x)))
+#x2$sentence <- stringr::str_replace_all(x2$sentence, " ", "")
+# Insert space after comma
+#x2$sentence <- textclean::add_comma_space(x2$sentence)
+#x3$sentence <- gsub("[[:punct:]]", "", x3$sentence) # replacing punctation with nothing
+```
+
 Making a csv-file
 ```{r}
-write.csv(data_subset, file = "preprocessed_data_subset.csv")
+write.csv(x2, file = "preprocessed_subset1.csv", row.names = FALSE, col.names = NA)
+```
 
+# RUNNING OPERATIONS ON ALL SUBSETS ##
+Now that we have tried out the operations on a single subset, we will do it on all subsets
+```{r}
+# Make a list of subsets
+list_of_subset_dataframes <- list(subset2,subset3, subset4, subset5, subset6, subset7, subset8, subset9, subset10, subset11, subset12, subset13, subset14, subset15, subset16, subset17, subset18, subset19, subset20, subset21, subset22, subset23, subset24, subset25, subset26, subset27, subset28, subset29, subset30, subset31, subset32, subset33, subset34, subset35, subset36, subset37, subset38, subset39, subset40, subset41, subset42, subset43, subset44, subset45, subset46, subset47, subset48, subset49, subset50, subset51, subset52, subset53, subset54, subset55, subset56)
+
+# Apply all preprocessing functions on all subsets
+list_of_preprocessed_subsets <- lapply(df.list, function(x) rowMeans(subset(x, select = c(start, stop)), na.rm = TRUE))
+
+# Add subset1 to the preprocessed list
+list_of_subset_dataframes <- list(subset1, subset2,subset3, subset4, subset5, subset6, subset7, subset8, subset9, subset10, subset11, subset12, subset13, subset14, subset15, subset16, subset17, subset18, subset19, subset20, subset21, subset22, subset23, subset24, subset25, subset26, subset27, subset28, subset29, subset30, subset31, subset32, subset33, subset34, subset35, subset36, subset37, subset38, subset39, subset40, subset41, subset42, subset43, subset44, subset45, subset46, subset47, subset48, subset49, subset50, subset51, subset52, subset53, subset54, subset55, subset56)
 ```
 
 

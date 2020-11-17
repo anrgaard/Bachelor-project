@@ -1,6 +1,23 @@
 # Packages
 library(pacman)
-p_load(shiny, shinydashboard, shinythemes, tm, SnowballC, wordcloud, RColorBrewer, readr, colourpicker, wordcloud2)
+p_load(shiny, 
+       tidyverse, 
+       shinydashboard, 
+       shinythemes, 
+       Rtsne, 
+       tm, 
+       SnowballC, 
+       wordcloud, 
+       visNetwork, 
+       RColorBrewer, 
+       readr, 
+       colourpicker, 
+       wordcloud2, 
+       word2vec,
+       fastTextR, 
+       text2vec,
+       ggplot2,
+       plotly)
 
 # Sentida
 #if(!require("devtools")) install.packages("devtools")
@@ -11,7 +28,29 @@ library(Sentida)
 #require(devtools)
 #install_github("lchiffon/wordcloud2")
 
-# Wordcloud input (ved ikke helt, hvorfor det her skal være der, men det skal det for at virke)
+# Test wordcloud med denne model
+#model_CoNLL17 <- read.word2vec(file = "CoNLL17_model/model.bin", normalize = TRUE)
+
+# Find different words
+# #calc_antonym <- function(word, embedding_matrix, n = 5) {
+#   similarities <- embedding_matrix[word, , drop = FALSE] %>%
+#     sim2(embedding_matrix, y = ., method = "cosine")
+#   similarities[,1] %>% sort(decreasing = TRUE) %>% tail(n)
+# }
+
+# Matrix 
+#matrix_model_CoNLL17 <- as.matrix(model_CoNLL17)
+
+# Make tsne model of the CoNLL17 to be able to plot it 
+tsne <- Rtsne(matrix_model_CoNLL17[2:500,], perplexity = 50, pca = FALSE)
+tsne_plot <- tsne$Y %>%
+  as.data.frame() %>%
+  mutate(word = row.names(matrix_model_CoNLL17)[2:500]) %>%
+  ggplot(aes(x = V1, y = V2, label = word)) + 
+  geom_text(size = 3)
+tsne_plot
+
+# Wordcloud input (ved ikke helt, hvorfor det her skal være der, men det skal det for at wordcloud virker)
 n <- 1
 
 # Define UI for application that draws a histogram
@@ -19,19 +58,55 @@ ui <- navbarPage("DEN SPROGLIGE VÆRKTØJSKASSE",
                  theme = shinytheme("flatly"),
                  
                  # Semantik panel
-                 tabPanel("Semantiske Afstande",
-                          titlePanel("Find Semantiske Afstande", windowTitle = "Window title"),
-                          sidebarLayout(
-                            sidebarPanel(
-                              textAreaInput(inputId = "textInput1", label = "Indtast et ord", placeholder = "Indtast et ord her..."),
+                 tabPanel("Semantisk Model Værktøjer",
+                          fluidPage(
+                            navlistPanel(
+                              "Menu",
+                              tabPanel("Semantisk Afstand og Nærmeste Ord",
+                                       h3("Semantisk afstand og ordassociationer", 
+                                          align = "center"),
+                                       textAreaInput(inputId = "textInput1", 
+                                                     label = "Indtast et ord", 
+                                                     placeholder = "Indtast et ord her..."),
+                                       mainPanel(tableOutput("closest_words"),
+                                                 tags$style(type="text/css",
+                                                            ".shiny-output-error { visibility: hidden; }",
+                                                            ".shiny-output-error:before { visibility: hidden; }"),
+                                                 )
+                                       ),
+                              
+                              tabPanel("Find ord længst væk",
+                                         h3("Den længste semantiske afstand",
+                                            align = "center"),
+                                       textAreaInput(inputId = "textInput2",
+                                                     label = "Indtast et ord",
+                                                     placeholder = "Indtast et ord her..."),
+                                       mainPanel(tableOutput("antonym"),
+                                                 tags$style(type="text/css",
+                                                            ".shiny-output-error { visibility: hidden; }",
+                                                            ".shiny-output-error:before { visibility: hidden; }"),
+                                       )
+                                                 ),
+                              
+                              tabPanel("Visualisering: Et Semantisk Netværk",
+                                       h3("Lav et semantisk netværk",
+                                          align = "center"),
+                                       selectInput(inputId = "model", "Select a model", c("CoNLL17 Model", "The Danish Gigaword Corpus Model")),
+                                         mainPanel(plotOutput("selectModel")),
+                                       hr(),
+                                       conditionalPanel(
+                                         condition = "input.model == 'CoNLL17 Model'"
+                                       ),
+                                       conditionalPanel(
+                                         condition = "input.model == 'Danish Gigaword Corpus Model'",
+                                       ),
+                                       mainPanel(plotOutput("model"))
+                                       )
+                                       )
+                              )
                             ),
-                            mainPanel(
-                              tableOutput("value1")
-                            )
-                          )
-                          ),
                  
-                 # Word cloud panel
+                # Word cloud panel
                  tabPanel("Word Cloud",
                           titlePanel("Lav din egen word cloud", windowTitle = "Window title"),
                    sidebarLayout(
@@ -96,6 +171,9 @@ ui <- navbarPage("DEN SPROGLIGE VÆRKTØJSKASSE",
                          textAreaInput("words_to_remove10", "", rows = 1)
                        ),
                        hr(),
+                       numericInput("num", "Maksimum antal ord i din wordcloud",
+                                    value = 100, min = 5),
+                       hr(),
                        colourInput("col", "Baggrundsfarve", value = "white"),
                        hr(),
                      ),
@@ -152,14 +230,47 @@ ui <- navbarPage("DEN SPROGLIGE VÆRKTØJSKASSE",
 server <- function(input, output) {
   
   # Semantisk afstand output 
-  output$value1 <- renderUI({
+  output$closest_words <- renderTable({
     closest_words <- predict(model_CoNLL17, newdata = input$textInput1, type = "nearest")
     closest_words <- as.data.frame(closest_words)
-    closest_words$textInput1.term2})
+    names(closest_words)[1] <- "Dit Ord"
+    names(closest_words)[2] <- "Nærmeste Ord"
+    names(closest_words)[3] <- "Semantisk Lighed"
+    names(closest_words)[4] <- "Rangering"
+    closest_words
+})
   
+  # Find ord længst væk output
+  output$antonym <- renderTable({
+    antonym <- calc_antonym(word = input$textInput2, embedding_matrix = matrix_model_CoNLL17, n = 5)
+    antonym <- as.list(antonym)
+    antonym <- as.data.frame(antonym)
+    antonym
+})
+
+  # Semantisk netværk
+  model_choice <- renderPlot({
+    if (input$model == "CoNLL17 Model") {
+      model <- tsne_plot
+     } else if (input$model== "The Danish Gigaword Corpus Model") {
+        model <- "The Danish Gigaword Corpus Model" 
+     }
+    return(model)
+})
+  
+  output$model <- renderPlot({
+    tsne_plot <- tsne$Y %>%
+      as.data.frame() %>%
+      mutate(word = row.names(matrix_model_CoNLL17)[2:500]) %>%
+      ggplot(aes(x = V1, y = V2, label = word)) + 
+      geom_text(size = 3)
+    tsne_plot
+  })
+
   #Sentiment analysis output
   output$value2 <- renderText({
-    sentida(input$textInput3, output = "total") })
+    sentida(input$textInput3, output = "total") 
+})
   
   # Word cloud output
   data_source <- reactive({
@@ -176,10 +287,10 @@ server <- function(input, output) {
     if (is.null(input$file)) {
       return("")
     }
-    readLines(input$file$datapath)
+    readLines(input$file$datapath, encoding= "UTF-8")
   })
   
-  create_wordcloud <- function(data, num_words = 100, background = "white") {
+  create_wordcloud <- function(data, num_words = 500, background = "white") {
     
     # If text is provided, convert it to a dataframe of word frequencies
     if (is.character(data)) {
@@ -187,7 +298,7 @@ server <- function(input, output) {
       corpus <- tm_map(corpus, tolower)
       corpus <- tm_map(corpus, removePunctuation)
       corpus <- tm_map(corpus, removeNumbers)
-      corpus <- tm_map(corpus, removeWords, stopwords(tolower(input$language)))
+      corpus <- tm_map(corpus, removeWords, stopwords(tolower("Danish")))
       corpus <- tm_map(corpus, removeWords, c(input$words_to_remove1))
       corpus <- tm_map(corpus, removeWords, c(input$words_to_remove2))
       corpus <- tm_map(corpus, removeWords, c(input$words_to_remove3))
@@ -214,7 +325,7 @@ server <- function(input, output) {
       return(NULL)
     }
     
-    wordcloud2(data, backgroundColor = background)
+    wordcloud2(data, backgroundColor = background, color = "random-dark")
   }
   output$cloud <- renderWordcloud2({
     create_wordcloud(data_source(),
