@@ -38,8 +38,9 @@ library(Sentida)
 #   similarities[,1] %>% sort(decreasing = TRUE) %>% tail(n)
 # }
 
-# Matrix 
-#matrix_model_CoNLL17 <- as.matrix(model_CoNLL17)
+# Matrix model
+model_CoNLL17 <- read.word2vec(file = "CoNLL17_model/model.bin", normalize = TRUE)
+matrix_model_CoNLL17 <- as.matrix(model_CoNLL17)
 
 # Make tsne model of the CoNLL17 to be able to plot it 
 tsne <- Rtsne(matrix_model_CoNLL17[2:500,], perplexity = 50, pca = FALSE)
